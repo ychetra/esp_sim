@@ -23,8 +23,8 @@ echo   [OK] Python found
 REM --- Install dependencies ---
 echo.
 echo   [1/5] Installing dependencies...
-pip install pyserial pyinstaller --quiet
-pip install pyodbc --quiet 2>nul
+python -m pip install pyserial pyinstaller --quiet
+python -m pip install pyodbc --quiet 2>nul
 echo   [OK] Dependencies installed
 
 REM --- Build EXE ---
@@ -35,7 +35,7 @@ echo.
 
 cd /d "%~dp0app"
 
-pyinstaller --noconfirm --onefile --console --name "RFID_CutStation" --add-data "dashboard.html;." --hidden-import serial --hidden-import serial.tools --hidden-import serial.tools.list_ports --hidden-import serial.tools.list_ports_common --hidden-import serial.tools.list_ports_windows main.py
+python -m PyInstaller --noconfirm --onefile --console --name "RFID_CutStation" --add-data "dashboard.html;." --hidden-import serial --hidden-import serial.tools --hidden-import serial.tools.list_ports --hidden-import serial.tools.list_ports_common --hidden-import serial.tools.list_ports_windows main.py
 
 echo.
 echo   Checking build result...
