@@ -1,30 +1,25 @@
 @echo off
-REM ═══════════════════════════════════════════════════════
-REM  RFID Cut Station — Uninstaller
-REM ═══════════════════════════════════════════════════════
+REM RFID Cut Station - Uninstaller
 
-title RFID Cut Station — Uninstall
+title RFID Cut Station - Uninstall
 echo.
 echo   Removing RFID Cut Station...
 echo.
 
-REM Remove Startup shortcut
-set STARTUP_DIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
-del /Q "%STARTUP_DIR%\RFID_CutStation.lnk" >nul 2>nul
-echo   ✅ Removed from Windows Startup
+set "STARTDIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+del /Q "%STARTDIR%\RFID_CutStation.lnk" 2>nul
+echo   [OK] Removed from Windows Startup
 
-REM Remove Desktop shortcut
-del /Q "%USERPROFILE%\Desktop\RFID Cut Station.lnk" >nul 2>nul
-echo   ✅ Removed Desktop shortcut
+del /Q "%USERPROFILE%\Desktop\RFID Cut Station.lnk" 2>nul
+echo   [OK] Removed Desktop shortcut
 
-REM Remove install folder
-set /p REMOVEFILES="   Delete C:\RFID_CutStation folder? (Y/N): "
+set /p REMOVEFILES="  Delete C:\RFID_CutStation folder? (Y/N): "
 if /i "%REMOVEFILES%"=="Y" (
-    rmdir /S /Q "C:\RFID_CutStation" >nul 2>nul
-    echo   ✅ Deleted C:\RFID_CutStation
+    rmdir /S /Q "C:\RFID_CutStation" 2>nul
+    echo   [OK] Folder deleted
 )
 
 echo.
-echo   ✅ Uninstall complete!
+echo   Uninstall complete!
 echo.
 pause

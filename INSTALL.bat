@@ -1,8 +1,6 @@
 @echo off
-REM ═══════════════════════════════════════════════════════
-REM  RFID Cut Station — Full Installer
-REM ═══════════════════════════════════════════════════════
-setlocal enabledelayedexpansion
+REM RFID Cut Station - Full Installer
+REM No Unicode characters - Windows CMD safe
 
 title RFID Cut Station - Installer
 echo.
@@ -11,111 +9,112 @@ echo     RFID Cut Station - INSTALLER
 echo   ========================================
 echo.
 
-REM ─── Check Python ──────────────────────────────────────
+REM --- Check Python ---
 python --version >nul 2>&1
 if errorlevel 1 (
-    echo   ERROR: Python not found!
+    echo   [FAIL] Python not found!
     echo   Download from https://python.org
-    echo   Check "Add Python to PATH" during install!
-    echo.
+    echo   Make sure to check "Add Python to PATH"
     pause
     exit /b 1
 )
 echo   [OK] Python found
 
-REM ─── Install dependencies ──────────────────────────────
+REM --- Install dependencies ---
+echo.
 echo   [1/5] Installing dependencies...
 pip install pyserial pyinstaller --quiet
 pip install pyodbc --quiet 2>nul
 echo   [OK] Dependencies installed
 
-REM ─── Build EXE ─────────────────────────────────────────
+REM --- Build EXE ---
+echo.
 echo   [2/5] Building EXE (takes 1-2 minutes)...
+echo   Please wait...
+echo.
 
-REM Save the project root
-set "PROJECT_ROOT=%~dp0"
+cd /d "%~dp0app"
 
-cd /d "%PROJECT_ROOT%app"
+pyinstaller --noconfirm --onefile --console --name "RFID_CutStation" --add-data "dashboard.html;." --hidden-import serial --hidden-import serial.tools --hidden-import serial.tools.list_ports --hidden-import serial.tools.list_ports_common --hidden-import serial.tools.list_ports_windows main.py
 
-pyinstaller --noconfirm --onefile --console ^
-    --name "RFID_CutStation" ^
-    --add-data "dashboard.html;." ^
-    --hidden-import serial ^
-    --hidden-import serial.tools ^
-    --hidden-import serial.tools.list_ports ^
-    --hidden-import serial.tools.list_ports_common ^
-    --hidden-import serial.tools.list_ports_windows ^
-    main.py
-
-if not exist "%PROJECT_ROOT%app\dist\RFID_CutStation.exe" (
-    echo   ERROR: Build failed! Check errors above.
+echo.
+echo   Checking build result...
+if not exist "dist\RFID_CutStation.exe" (
+    echo.
+    echo   [FAIL] Build failed! EXE not created.
+    echo   Check the error messages above.
+    echo.
     pause
     exit /b 1
 )
-echo   [OK] EXE built successfully
+echo   [OK] EXE built: %CD%\dist\RFID_CutStation.exe
 
-REM ─── Copy to install location ──────────────────────────
-echo   [3/5] Installing to C:\RFID_CutStation ...
+REM --- Copy to install folder ---
+echo.
+echo   [3/5] Copying to C:\RFID_CutStation ...
 
 if not exist "C:\RFID_CutStation" mkdir "C:\RFID_CutStation"
 
-copy /Y "%PROJECT_ROOT%app\dist\RFID_CutStation.exe" "C:\RFID_CutStation\RFID_CutStation.exe" >nul
-copy /Y "%PROJECT_ROOT%app\config.ini" "C:\RFID_CutStation\config.ini" >nul
+copy /Y "dist\RFID_CutStation.exe" "C:\RFID_CutStation\RFID_CutStation.exe"
+copy /Y "config.ini" "C:\RFID_CutStation\config.ini"
 
-REM Verify the copy worked
 if not exist "C:\RFID_CutStation\RFID_CutStation.exe" (
-    echo   ERROR: Copy failed! Try running as Administrator.
+    echo.
+    echo   [FAIL] Copy failed!
+    echo   Try: Right-click INSTALL.bat and "Run as Administrator"
+    echo.
     pause
     exit /b 1
 )
-echo   [OK] Files installed
+echo   [OK] Copied to C:\RFID_CutStation
 
-REM ─── Desktop shortcut ─────────────────────────────────
+REM --- Desktop shortcut ---
+echo.
 echo   [4/5] Creating Desktop shortcut...
 
-set "VBS_FILE=%TEMP%\rfid_desktop.vbs"
-> "%VBS_FILE%" echo Set ws = CreateObject("WScript.Shell")
->> "%VBS_FILE%" echo Set sc = ws.CreateShortcut(ws.SpecialFolders("Desktop") ^& "\RFID Cut Station.lnk")
->> "%VBS_FILE%" echo sc.TargetPath = "C:\RFID_CutStation\RFID_CutStation.exe"
->> "%VBS_FILE%" echo sc.WorkingDirectory = "C:\RFID_CutStation"
->> "%VBS_FILE%" echo sc.Description = "RFID Cut Station"
->> "%VBS_FILE%" echo sc.Save
-cscript //nologo "%VBS_FILE%"
-del "%VBS_FILE%" 2>nul
+set "VBS=%TEMP%\rfid_desk.vbs"
+echo Set ws = CreateObject("WScript.Shell") > "%VBS%"
+echo Set sc = ws.CreateShortcut(ws.SpecialFolders("Desktop") ^& "\RFID Cut Station.lnk") >> "%VBS%"
+echo sc.TargetPath = "C:\RFID_CutStation\RFID_CutStation.exe" >> "%VBS%"
+echo sc.WorkingDirectory = "C:\RFID_CutStation" >> "%VBS%"
+echo sc.Description = "RFID Cut Station" >> "%VBS%"
+echo sc.Save >> "%VBS%"
+cscript //nologo "%VBS%"
+del "%VBS%" 2>nul
 echo   [OK] Desktop shortcut created
 
-REM ─── Auto-start on boot ───────────────────────────────
+REM --- Auto-start on boot ---
+echo.
 echo   [5/5] Adding to Windows Startup...
 
-set "STARTUP_FOLDER=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
-set "VBS_FILE=%TEMP%\rfid_startup.vbs"
-> "%VBS_FILE%" echo Set ws = CreateObject("WScript.Shell")
->> "%VBS_FILE%" echo Set sc = ws.CreateShortcut("%STARTUP_FOLDER%\RFID_CutStation.lnk")
->> "%VBS_FILE%" echo sc.TargetPath = "C:\RFID_CutStation\RFID_CutStation.exe"
->> "%VBS_FILE%" echo sc.WorkingDirectory = "C:\RFID_CutStation"
->> "%VBS_FILE%" echo sc.Description = "RFID Cut Station Auto Start"
->> "%VBS_FILE%" echo sc.Save
-cscript //nologo "%VBS_FILE%"
-del "%VBS_FILE%" 2>nul
-echo   [OK] Auto-start enabled
+set "STARTDIR=%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup"
+set "VBS=%TEMP%\rfid_boot.vbs"
+echo Set ws = CreateObject("WScript.Shell") > "%VBS%"
+echo Set sc = ws.CreateShortcut("%STARTDIR%\RFID_CutStation.lnk") >> "%VBS%"
+echo sc.TargetPath = "C:\RFID_CutStation\RFID_CutStation.exe" >> "%VBS%"
+echo sc.WorkingDirectory = "C:\RFID_CutStation" >> "%VBS%"
+echo sc.Description = "RFID Cut Station Auto Start" >> "%VBS%"
+echo sc.Save >> "%VBS%"
+cscript //nologo "%VBS%"
+del "%VBS%" 2>nul
+echo   [OK] Auto-start on boot enabled
 
-REM ─── Cleanup build artifacts ───────────────────────────
-cd /d "%PROJECT_ROOT%app"
+REM --- Cleanup ---
+cd /d "%~dp0app"
 rmdir /S /Q build 2>nul
 rmdir /S /Q __pycache__ 2>nul
 del /Q *.spec 2>nul
-REM Keep dist folder as backup
-cd /d "%PROJECT_ROOT%"
 
-REM ─── Done ──────────────────────────────────────────────
+REM --- Done ---
+cd /d "%~dp0"
 echo.
 echo   ========================================
 echo     INSTALLATION COMPLETE!
 echo   ========================================
 echo.
-echo   Location:    C:\RFID_CutStation
-echo   Desktop:     Shortcut created
-echo   Auto-start:  Enabled (runs on boot)
+echo   Location:     C:\RFID_CutStation
+echo   Desktop:      Shortcut created
+echo   Auto-start:   Runs on Windows boot
 echo.
 echo   NEXT STEPS:
 echo     1. Double-click "RFID Cut Station" on Desktop
@@ -124,13 +123,9 @@ echo     3. Click Settings gear icon
 echo     4. Enter SQL Server details
 echo     5. Click Auto-Detect ESP32
 echo.
-echo   To remove: run UNINSTALL.bat
-echo.
 
-set /p "STARTNOW=  Launch now? (Y/N): "
+set /p STARTNOW="  Launch now? (Y/N): "
 if /i "%STARTNOW%"=="Y" (
     start "" "C:\RFID_CutStation\RFID_CutStation.exe"
 )
-
-endlocal
 pause
