@@ -217,7 +217,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
         elif parsed.path == '/api/settings':
             # Save settings to config.ini
             cfg = configparser.ConfigParser()
-            cfg.read(CONFIG_PATH)
+            cfg.read(CONFIG_PATH, encoding='utf-8')
             for section in ['machine', 'database', 'serial', 'dashboard']:
                 if not cfg.has_section(section):
                     cfg.add_section(section)
@@ -235,7 +235,7 @@ class DashboardHandler(http.server.BaseHTTPRequestHandler):
             cfg.set('serial', 'port', data.get('serial_port', ''))
             cfg.set('serial', 'baud', data.get('serial_baud', '115200'))
             cfg.set('dashboard', 'web_port', data.get('web_port', '8080'))
-            with open(CONFIG_PATH, 'w') as f:
+            with open(CONFIG_PATH, 'w', encoding='utf-8') as f:
                 cfg.write(f)
             # Update runtime state
             app_state['station_name'] = data.get('machine_name', 'Cut Station 1')

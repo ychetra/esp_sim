@@ -48,7 +48,7 @@ def load_config():
 
     # Override with file if exists
     if os.path.exists(CONFIG_PATH):
-        config.read(CONFIG_PATH)
+        config.read(CONFIG_PATH, encoding='utf-8')
 
     return config
 
