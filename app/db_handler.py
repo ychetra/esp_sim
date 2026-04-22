@@ -28,7 +28,7 @@ def load_config():
     defaults = {
         'machine': {'name': 'Cut Station'},
         'database': {
-            'mode': 'sqlite',
+            'mode': 'sqlserver',
             'host': 'localhost',
             'port': '1433',
             'database': 'YourDatabaseName',
